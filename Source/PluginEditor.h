@@ -15,14 +15,14 @@ struct CustomRotarySlider : juce::Slider
 {
     CustomRotarySlider() : juce::Slider(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag, juce::Slider::TextEntryBoxPosition::NoTextBox)
     {
-        
     }
 };
 
 //==============================================================================
 /**
 */
-class SimpleEQAudioProcessorEditor  : public juce::AudioProcessorEditor
+class SimpleEQAudioProcessorEditor  : public juce::AudioProcessorEditor,
+juce::AudioProcessorParameter::Listener
 {
 public:
     SimpleEQAudioProcessorEditor (SimpleEQAudioProcessor&);
@@ -31,14 +31,20 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+    
+    // Virtual function overrides
+    void parameterValueChanged (int parameterIndex, float newValue) override;
+    void parameterGestureChanged (int parameterIndex, bool gestureIsStarting) override {};
+    void timerCallback();
 
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     SimpleEQAudioProcessor& audioProcessor;
     
-    // Sliders
+    juce::Atomic<bool> parametersChanged {false};
     
+    // Sliders
     CustomRotarySlider peakFreqSlider,
     peakGainSlider,
     peakQualitySlider,
