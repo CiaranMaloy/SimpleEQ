@@ -26,11 +26,23 @@ highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlope
     }
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
+    const auto& params = audioProcessor.getParameters();
+    for (auto param : params)
+    {
+        param->addListener(this);
+    }
+    
+    startTimerHz(60);
     setSize (600, 400);
 }
 
 SimpleEQAudioProcessorEditor::~SimpleEQAudioProcessorEditor()
 {
+    const auto& params = audioProcessor.getParameters();
+    for (auto param : params)
+    {
+        param->removeListener(this);
+    }
 }
 
 //==============================================================================
@@ -87,11 +99,11 @@ void SimpleEQAudioProcessorEditor::paint (juce::Graphics& g)
     }
     
     juce::Path responseCurve;
-    const double outputmin = responseArea.getBottom();
-    const double outputmax = responseArea.getY();
-    auto map = [outputmin, outputmax](double input)
+    const double outputMin = responseArea.getBottom();
+    const double outputMax = responseArea.getY();
+    auto map = [outputMin, outputMax](double input)
     {
-        return juce::jmap(input, -24.0, 24.0, outputmin, outputmax);
+        return juce::jmap(input, -24.0, 24.0, outputMin, outputMax);
     };
     
     responseCurve.startNewSubPath(responseArea.getX(), map(mags.front()));
@@ -114,7 +126,7 @@ void SimpleEQAudioProcessorEditor::resized()
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
     auto bounds = getLocalBounds();
-    auto responseArea = bounds.removeFromTop(bounds.getHeight() * 0.33);
+    bounds.removeFromTop(bounds.getHeight() * 0.33); // this needs no variable?? 
     
     auto lowCutArea = bounds.removeFromLeft(bounds.getWidth() * 0.33);
     auto highCutArea = bounds.removeFromRight(bounds.getWidth() * 0.5);
@@ -139,8 +151,12 @@ void SimpleEQAudioProcessorEditor::timerCallback()
 {
     if (parametersChanged.compareAndSetBool(false, true))
     {
-        // Update monochain and signal a repaint
-        
+        // Update monochain
+        auto chainSettings = getChainSettings(audioProcessor.apvts);
+        auto peakCoefficients = makePeakFilter(chainSettings, audioProcessor.getSampleRate());
+        updateCoefficients(monoChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
+        //and signal a repaint
+        repaint();
     }
 }
 
