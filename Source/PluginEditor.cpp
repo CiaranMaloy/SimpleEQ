@@ -69,10 +69,10 @@ void RotarySliderWithLabels::paint(juce::Graphics &g)
     
     auto sliderBounds = getSliderBounds();
     
-    g.setColour(juce::Colours::red);
-    g.drawRect(getLocalBounds());
-    g.setColour(juce::Colours::yellow);
-    g.drawRect(sliderBounds);
+//    g.setColour(juce::Colours::red);
+//    g.drawRect(getLocalBounds());
+//    g.setColour(juce::Colours::yellow);
+//    g.drawRect(sliderBounds);
     
     getLookAndFeel().drawRotarySlider(g, sliderBounds.getX(), sliderBounds.getY(), sliderBounds.getWidth(), sliderBounds.getHeight(), juce::jmap(getValue(), range.getStart(), range.getEnd(), 0.0, 1.0), startAng, endAng, *this);
 }
@@ -123,11 +123,11 @@ juce::String RotarySliderWithLabels::getDisplayString() const
         str << " ";
         if (addK)
         {
-            str << "K";
+            str << "k";
         }
         str << suffix;
     }
-    //return juce::String(getValue());
+    
     return str;
 }
 
