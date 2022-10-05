@@ -66,6 +66,7 @@ struct ResponseCurveComponent : juce::Component, juce::AudioProcessorParameter::
     void parameterGestureChanged (int parameterIndex, bool gestureIsStarting) override {};
     void timerCallback() override;
     void paint(juce::Graphics& g) override;
+    void resized() override;
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -75,6 +76,12 @@ private:
     MonoChain monoChain;
     
     void UpdateChain();
+    
+    juce::Image background;
+    
+    juce::Rectangle<int> getRenderArea();
+    
+    juce::Rectangle<int> getAnalysisArea();
 };
 
 //==============================================================================
