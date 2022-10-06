@@ -385,6 +385,16 @@ void ResponseCurveComponent::resized()
         g.setColour(gDb == 0.f ? juce::Colour(0u, 172u, 1u) : juce::Colours::lightgrey);
         g.drawFittedText(str, r, juce::Justification::centred, 1);
         
+        /* Also use this to draw gain labels for the visualiser */
+        str.clear();
+        str << (gDb - 24.f);
+        
+        r.setX(1);
+        textWidth = g.getCurrentFont().getStringWidth(str);
+        r.setSize(textWidth, fontHeight);
+        
+        g.setColour(juce::Colours::lightgrey);
+        g.drawFittedText(str, r, juce::Justification::centred, 1);
     }
     
     
