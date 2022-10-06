@@ -293,7 +293,7 @@ void ResponseCurveComponent::resized()
     // Frequency lines
     juce::Array<float> freqs
     {
-      20, 30, 40, 50, 100, 200, 300, 400, 500, 1000, 2000, 3000, 4000, 5000, 10000, 20000
+      20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000
     };
     // Gain lines
     juce::Array<float> gain
@@ -332,6 +332,62 @@ void ResponseCurveComponent::resized()
         
         g.drawHorizontalLine(y, left, right);
     }
+    
+    /* Draw Frequency Labels */
+    g.setColour(juce::Colours::lightgrey);
+    const int fontHeight = 10;
+    g.setFont(fontHeight);
+    
+    for (int i = 0; i < freqs.size(); ++i)
+    {
+        auto f = freqs[i];
+        auto x = xs[i];
+        
+        bool addK = false;
+        juce::String str;
+        if( f > 999.f)
+        {
+            addK = true;
+            f /= 1000.f;
+        }
+        
+        str << f;
+        if(addK) str << "k";
+        str << "Hz";
+        
+        auto textWidth = g.getCurrentFont().getStringWidth(str);
+        
+        juce::Rectangle<int> r;
+        r.setSize(textWidth, fontHeight);
+        r.setCentre(x, 0);
+        r.setY(1);
+        
+        g.drawFittedText(str, r, juce::Justification::centred, 1);
+    } /* End draw freqency labels */
+    
+    /* Draw Gain labels*/
+    for (auto gDb : gain)
+    {
+        auto y = juce::jmap(gDb, -24.f, 24.f, float(bottom), float(top));
+        
+        juce::String str;
+        if (gDb > 0)
+            str << "+";
+        str << gDb;
+        
+        auto textWidth = g.getCurrentFont().getStringWidth(str);
+        
+        juce::Rectangle<int> r;
+        r.setSize(textWidth, fontHeight);
+        r.setX(getWidth() - textWidth);
+        r.setCentre(r.getCentreX(), y);
+        
+        g.setColour(gDb == 0.f ? juce::Colour(0u, 172u, 1u) : juce::Colours::lightgrey);
+        g.drawFittedText(str, r, juce::Justification::centred, 1);
+        
+    }
+    
+    
     
 //  g.drawRect(getAnalysisArea());
 }
