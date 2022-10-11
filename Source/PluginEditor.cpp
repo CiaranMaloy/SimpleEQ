@@ -166,7 +166,8 @@ juce::String RotarySliderWithLabels::getDisplayString() const
 //==========================================================================================================
 ResponseCurveComponent::ResponseCurveComponent(SimpleEQAudioProcessor& p) :
 audioProcessor(p),
-leftPathProducer(audioProcessor.leftChannelFifo)
+leftPathProducer(audioProcessor.leftChannelFifo),
+rightPathProducer(audioProcessor.rightChannelFifo)
 //leftChannelFifo(&audioProcessor.leftChannelFifo)
 {
     const auto& params = audioProcessor.getParameters();
@@ -252,6 +253,7 @@ void ResponseCurveComponent::timerCallback()
     auto sampleRate = audioProcessor.getSampleRate();
     
     leftPathProducer.process(fftBounds, sampleRate);
+    rightPathProducer.process(fftBounds, sampleRate);
     
     if (parametersChanged.compareAndSetBool(false, true))
     {
@@ -346,13 +348,18 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
         responseCurve.lineTo(responseArea.getX() + i, map(mags[i]));
     }
     
+    // Done left channel
     auto leftChannelFFTPath = leftPathProducer.getPath();
-    
+    auto rightChannelFFTPath = rightPathProducer.getPath();
     // draw before rendered area so its behing everything
     leftChannelFFTPath.applyTransform(juce::AffineTransform().translation(responseArea.getX(), responseArea.getY()));
+    rightChannelFFTPath.applyTransform(juce::AffineTransform().translation(responseArea.getX(), responseArea.getY()));
     
     g.setColour(juce::Colours::skyblue);
     g.strokePath(leftChannelFFTPath, juce::PathStrokeType(1));
+    g.setColour(juce::Colours::lightyellow);
+    g.strokePath(rightChannelFFTPath, juce::PathStrokeType(1));
+    
     
     g.setColour(juce::Colours::orange);
     g.drawRoundedRectangle(getRenderArea().toFloat(), 4.f, 1.f);

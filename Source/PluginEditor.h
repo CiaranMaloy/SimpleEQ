@@ -260,7 +260,7 @@ private:
     
     juce::Rectangle<int> getAnalysisArea();
     
-    PathProducer leftPathProducer;
+    PathProducer leftPathProducer, rightPathProducer;
 
 };
 
