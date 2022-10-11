@@ -108,7 +108,6 @@ void SimpleEQAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
     leftChannelFifo.prepare(samplesPerBlock);
     rightChannelFifo.prepare(samplesPerBlock);
     
-    
 }
 
 void SimpleEQAudioProcessor::releaseResources()

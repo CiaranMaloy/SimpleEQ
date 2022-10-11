@@ -161,21 +161,19 @@ juce::String RotarySliderWithLabels::getDisplayString() const
     return str;
 }
 
+ 
+
 //==========================================================================================================
 ResponseCurveComponent::ResponseCurveComponent(SimpleEQAudioProcessor& p) :
 audioProcessor(p),
-leftChannelFifo(&audioProcessor.leftChannelFifo)
+leftPathProducer(audioProcessor.leftChannelFifo)
+//leftChannelFifo(&audioProcessor.leftChannelFifo)
 {
     const auto& params = audioProcessor.getParameters();
     for (auto param : params)
     {
         param->addListener(this);
     }
-    
-    leftChannelFFTDataGenerator.changeOrder(FFTOrder::order2048); // initialises with an enum defining 2048 bin size
-    monoBuffer.setSize(1, leftChannelFFTDataGenerator.getFFTSize());
-    
-    
     
     UpdateChain();
     startTimerHz(60);
@@ -195,7 +193,7 @@ void ResponseCurveComponent::parameterValueChanged(int parameterIndex, float new
     parametersChanged.set(true);
 }
 
-void ResponseCurveComponent::timerCallback()
+void PathProducer::process(juce::Rectangle<float> fftBounds, double sampleRate)
 {
     // Make temporary buffer
     juce::AudioBuffer<float> tempIncomingBuffer;
@@ -214,15 +212,15 @@ void ResponseCurveComponent::timerCallback()
         }
     }
     
-    //While there are fft data genertor buffers to pull, if we can pull a buffer, lets generate a path
-    auto fftBounds = getAnalysisArea().toFloat();
+    /* While there are fft data genertor buffers to pull, if we can pull a buffer, lets generate a path
+     */
     auto fftSize = leftChannelFFTDataGenerator.getFFTSize();
     
     /*
      the bin width is = 48000 / 2048 = 23Hz
      */
     
-    const auto binWidth = audioProcessor.getSampleRate() / (double)fftSize;
+    const auto binWidth = sampleRate / (double)fftSize;
     
     while (leftChannelFFTDataGenerator.getNumAvailableFFTDataBlocks() > 0)
     {
@@ -243,6 +241,17 @@ void ResponseCurveComponent::timerCallback()
     {
         pathProducer.getPath(leftChannelFFTPath);
     }
+    
+}
+
+void ResponseCurveComponent::timerCallback()
+{
+    
+    // Call process function
+    auto fftBounds = getAnalysisArea().toFloat();
+    auto sampleRate = audioProcessor.getSampleRate();
+    
+    leftPathProducer.process(fftBounds, sampleRate);
     
     if (parametersChanged.compareAndSetBool(false, true))
     {
@@ -336,6 +345,8 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
     {
         responseCurve.lineTo(responseArea.getX() + i, map(mags[i]));
     }
+    
+    auto leftChannelFFTPath = leftPathProducer.getPath();
     
     // draw before rendered area so its behing everything
     leftChannelFFTPath.applyTransform(juce::AffineTransform().translation(responseArea.getX(), responseArea.getY()));
