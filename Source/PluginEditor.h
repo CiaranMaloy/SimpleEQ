@@ -249,6 +249,11 @@ struct ResponseCurveComponent : juce::Component, juce::AudioProcessorParameter::
     void timerCallback() override;
     void paint(juce::Graphics& g) override;
     void resized() override;
+    
+    void toggleAnalysisEnablement(bool enabled)
+    {
+        shouldShowFFTAnalysis = enabled;
+    }
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -266,6 +271,8 @@ private:
     juce::Rectangle<int> getAnalysisArea();
     
     PathProducer leftPathProducer, rightPathProducer;
+    
+    bool shouldShowFFTAnalysis = true;
 
 };
 

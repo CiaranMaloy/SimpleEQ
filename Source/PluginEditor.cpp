@@ -310,13 +310,15 @@ void PathProducer::process(juce::Rectangle<float> fftBounds, double sampleRate)
 
 void ResponseCurveComponent::timerCallback()
 {
-    
-    // Call process function
-    auto fftBounds = getAnalysisArea().toFloat();
-    auto sampleRate = audioProcessor.getSampleRate();
-    
-    leftPathProducer.process(fftBounds, sampleRate);
-    rightPathProducer.process(fftBounds, sampleRate);
+    if ( shouldShowFFTAnalysis )
+    {
+        // Call process function
+        auto fftBounds = getAnalysisArea().toFloat();
+        auto sampleRate = audioProcessor.getSampleRate();
+        
+        leftPathProducer.process(fftBounds, sampleRate);
+        rightPathProducer.process(fftBounds, sampleRate);
+    }
     
     if (parametersChanged.compareAndSetBool(false, true))
     {
@@ -425,19 +427,22 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
         responseCurve.lineTo(responseArea.getX() + i, map(mags[i]));
     }
     
-    // Done left channel
-    auto leftChannelFFTPath = leftPathProducer.getPath();
-    auto rightChannelFFTPath = rightPathProducer.getPath();
-    // draw before rendered area so its behing everything
-    leftChannelFFTPath.applyTransform(juce::AffineTransform().translation(responseArea.getX(), responseArea.getY()));
-    rightChannelFFTPath.applyTransform(juce::AffineTransform().translation(responseArea.getX(), responseArea.getY()));
+    if ( shouldShowFFTAnalysis )
+    {
+        // Done left channel
+        auto leftChannelFFTPath = leftPathProducer.getPath();
+        auto rightChannelFFTPath = rightPathProducer.getPath();
+        // draw before rendered area so its behing everything
+        leftChannelFFTPath.applyTransform(juce::AffineTransform().translation(responseArea.getX(), responseArea.getY()));
+        rightChannelFFTPath.applyTransform(juce::AffineTransform().translation(responseArea.getX(), responseArea.getY()));
+        
+        g.setColour(juce::Colours::skyblue);
+        g.strokePath(leftChannelFFTPath, juce::PathStrokeType(1));
+        g.setColour(juce::Colours::lightyellow);
+        g.strokePath(rightChannelFFTPath, juce::PathStrokeType(1));
+    }
     
-    g.setColour(juce::Colours::skyblue);
-    g.strokePath(leftChannelFFTPath, juce::PathStrokeType(1));
-    g.setColour(juce::Colours::lightyellow);
-    g.strokePath(rightChannelFFTPath, juce::PathStrokeType(1));
-    
-    
+
     g.setColour(juce::Colours::orange);
     g.drawRoundedRectangle(getRenderArea().toFloat(), 4.f, 1.f);
     
@@ -672,6 +677,15 @@ analyzerEnabledButtonAttachment(audioProcessor.apvts, "Analyzer Enabled", analyz
             
             comp->highCutFreqSlider.setEnabled(! bypassed);
             comp->highCutSlopeSlider.setEnabled(! bypassed);
+        }
+    };
+    
+    analyzerEnabledButton.onClick = [safePtr]()
+    {
+        if (auto* comp = safePtr.getComponent())
+        {
+            auto enabled = comp->analyzerEnabledButton.getToggleState();
+            comp->responseCurveComponent.toggleAnalysisEnablement(enabled);
         }
     };
     
