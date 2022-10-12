@@ -292,9 +292,9 @@ private:
     highCutSlopeSlider;
     
     using AVPTS = juce::AudioProcessorValueTreeState;
-    using attachment = AVPTS::SliderAttachment;
+    using Attachment = AVPTS::SliderAttachment;
     
-    attachment peakFreqSliderAttachment,
+    Attachment peakFreqSliderAttachment,
     peakGainSliderAttachment,
     peakQualitySliderAttachment,
     lowCutFreqSliderAttachment,
@@ -303,6 +303,8 @@ private:
     highCutSlopeSliderAttachment;
     
     ResponseCurveComponent responseCurveComponent;
+    
+    juce::ToggleButton lowcutBypassButton, peakBypassButton, highcutBypassButton, analyzerEnabledButton;
     
     std::vector<juce::Component*> getComps();
 
