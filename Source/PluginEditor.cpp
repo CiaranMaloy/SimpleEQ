@@ -18,10 +18,12 @@ void LookAndFeel::drawRotarySlider(juce::Graphics& g,
 {
     auto bounds = juce::Rectangle<float>(x, y, width, height);
     
-    g.setColour(juce::Colour(97u, 18u, 167u));
+    auto enabled = slider.isEnabled();
+    
+    g.setColour(enabled ? juce::Colour(97u, 18u, 167u) : juce::Colours::darkgrey);
     g.fillEllipse(bounds);
     
-    g.setColour(juce::Colour(255u, 157u, 1u));
+    g.setColour(enabled ? juce::Colour(255u, 157u, 1u) : juce::Colours::grey);
     g.drawEllipse(bounds, 1.f);
     
     if (auto* rswl = dynamic_cast<RotarySliderWithLabels*>(&slider))
@@ -636,6 +638,42 @@ analyzerEnabledButtonAttachment(audioProcessor.apvts, "Analyzer Enabled", analyz
     lowcutBypassButton.setLookAndFeel(&lnf);
     highcutBypassButton.setLookAndFeel(&lnf);
     analyzerEnabledButton.setLookAndFeel(&lnf);
+    
+    // use a safe pointer (this is what magnus and gulia were on about a lot)
+    auto safePtr = juce::Component::SafePointer<SimpleEQAudioProcessorEditor>(this);
+    peakBypassButton.onClick = [safePtr]()
+    {
+        if (auto* comp = safePtr.getComponent())
+        {
+            auto bypassed = comp->peakBypassButton.getToggleState();
+            
+            comp->peakFreqSlider.setEnabled(! bypassed);
+            comp->peakGainSlider.setEnabled(! bypassed);
+            comp->peakQualitySlider.setEnabled(! bypassed);
+        }
+    };
+    
+    lowcutBypassButton.onClick = [safePtr]()
+    {
+        if (auto* comp = safePtr.getComponent())
+        {
+            auto bypassed = comp->lowcutBypassButton.getToggleState();
+            
+            comp->lowCutFreqSlider.setEnabled(! bypassed);
+            comp->lowCutSlopeSlider.setEnabled(! bypassed);
+        }
+    };
+    
+    highcutBypassButton.onClick = [safePtr]()
+    {
+        if (auto* comp = safePtr.getComponent())
+        {
+            auto bypassed = comp->highcutBypassButton.getToggleState();
+            
+            comp->highCutFreqSlider.setEnabled(! bypassed);
+            comp->highCutSlopeSlider.setEnabled(! bypassed);
+        }
+    };
     
     setSize (600, 480);
 }
